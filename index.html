@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Leave Management System</title>
+<style>
+  :root {
+    --primary: #1e40af;
+    --primary-light: #3b82f6;
+    --primary-dark: #1e3a8a;
+    --success: #16a34a;
+    --danger: #dc2626;
+    --warning: #d97706;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* ── Auth Pages ── */
+  .auth-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 50%,#2563eb 100%); padding:20px; }
+  .auth-card { background:#fff; border-radius:20px; padding:40px; width:100%; max-width:440px; box-shadow:0 25px 60px rgba(0,0,0,.25); }
+  .auth-card h1 { font-size:20px; font-weight:700; color:var(--primary-dark); margin-bottom:4px; }
+  .auth-card p { color:var(--muted); font-size:13px; margin-bottom:24px; }
+  .form-group { margin-bottom:14px; }
+  .form-group label { display:block; font-size:11px; font-weight:600; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:8px;
+    font-size:13px; color:var(--text); background:#f8fafc; transition:.2s;
+  }
+  /* ── Select Dropdown Animation ── */
+  .form-group select {
+    width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:8px;
+    font-size:13px; color:var(--text); background:#f8fafc; transition:all .3s ease;
+    cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center;
+  }
+  .form-group select:focus {
+    outline:none; border-color:var(--primary-light); background:#fff;
+    box-shadow:0 0 0 3px rgba(59,130,246,.12),0 0 15px rgba(59,130,246,.15);
+    transform:scale(1.02);
+  }
+  .form-group select:hover {
+    border-color:var(--primary-light);
+    box-shadow:0 0 8px rgba(59,130,246,.1);
+  }
+  .form-group input:focus, .form-group textarea:focus {
+    outline:none; border-color:var(--primary-light); background:#fff;
+    box-shadow:0 0 0 3px rgba(59,130,246,.12);
+  }
+  .form-group .hint { font-size:10px; color:var(--muted); margin-top:3px; }
+  /* ── Buttons with Animations ── */
+  .btn {
+    padding:10px 20px; border:none; border-radius:8px; font-size:13px; font-weight:600;
+    cursor:pointer; transition:all .3s cubic-bezier(.4,0,.2,1); display:inline-flex;
+    align-items:center; gap:6px; position:relative; overflow:hidden;
+  }
+  .btn::before {
+    content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+    transition:.5s;
+  }
+  .btn:hover::before { left:100%; }
+  .btn:active { transform:scale(.95); }
+  .btn-primary {
+    background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff;
+    box-shadow:0 4px 15px rgba(30,64,175,.3);
+  }
+  .btn-primary:hover {
+    background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+    transform:translateY(-2px); box-shadow:0 6px 20px rgba(30,64,175,.4);
+  }
+  .btn-success {
+    background:linear-gradient(135deg,#16a34a,#22c55e); color:#fff;
+    box-shadow:0 4px 15px rgba(22,163,74,.3);
+  }
+  .btn-success:hover {
+    background:linear-gradient(135deg,#15803d,#16a34a);
+    transform:translateY(-2px); box-shadow:0 6px 20px rgba(22,163,74,.4);
+  }
+  .btn-danger {
+    background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff;
+    box-shadow:0 4px 15px rgba(220,38,38,.3);
+  }
+  .btn-danger:hover {
+    background:linear-gradient(135deg,#b91c1c,#dc2626);
+    transform:translateY(-2px); box-shadow:0 6px 20px rgba(220,38,38,.4);
+  }
+  .btn-warning {
+    background:linear-gradient(135deg,#d97706,#f59e0b); color:#fff;
+    box-shadow:0 4px 15px rgba(217,119,6,.3);
+  }
+  .btn-warning:hover {
+    background:linear-gradient(135deg,#b45309,#d97706);
+    transform:translateY(-2px); box-shadow:0 6px 20px rgba(217,119,6,.4);
+  }
+  .btn-outline {
+    background:#fff; color:var(--primary); border:2px solid var(--primary);
+  }
+  .btn-outline:hover {
+    background:linear-gradient(135deg,var(--primary),var(--primary-light));
+    color:#fff; transform:translateY(-2px); box-shadow:0 6px 20px rgba(30,64,175,.3);
+  }
+  .btn-full { width:100%; justify-content:center; }
+  /* ── Custom Text Selection Color ── */
+  ::selection {
+    background:var(--primary-light);
+    color:#fff;
+  }
+  ::-moz-selection {
+    background:var(--primary-light);
+    color:#fff;
+  }
+
+  /* ── Role Tabs Animation ── */
+  .role-tabs { display:flex; gap:8px; margin-bottom:20px; }
+  .role-tab {
+    flex:1; padding:8px; border:1.5px solid var(--border); border-radius:8px;
+    background:#f8fafc; cursor:pointer; font-size:12px; font-weight:600; text-align:center;
+    color:var(--muted); transition:all .3s cubic-bezier(.4,0,.2,1); position:relative; overflow:hidden;
+  }
+  .role-tab::before {
+    content:''; position:absolute; bottom:0; left:0; width:100%; height:3px;
+    background:linear-gradient(90deg,var(--primary),var(--primary-light));
+    transform:scaleX(0); transition:transform .3s ease;
+  }
+  .role-tab:hover { background:#f1f5f9; border-color:var(--primary-light); color:var(--primary); }
+  .role-tab.active {
+    border-color:var(--primary); background:linear-gradient(135deg,var(--primary),var(--primary-light));
+    color:#fff; box-shadow:0 4px 15px rgba(30,64,175,.3);
+  }
+  .role-tab.active::before { transform:scaleX(1); }
+  .demo-hint { background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:11px; margin-bottom:16px; font-size:11px; color:#0369a1; line-height:1.6; }
+  .switch-link { text-align:center; margin-top:16px; font-size:12px; color:var(--muted); }
+  .switch-link a { color:var(--primary); font-weight:600; cursor:pointer; text-decoration:none; }
+  .switch-link a:hover { text-decoration:underline; }
+  .error-msg { color:var(--danger); font-size:11px; margin-top:6px; text-align:center; }
+  .success-box { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:14px; text-align:center; color:var(--success); font-size:13px; }
+
+  /* ── App Shell ── */
+  .app { display:flex; min-height:100vh; }
+  .sidebar { width:240px; background:var(--primary-dark); color:#fff; display:flex; flex-direction:column; flex-shrink:0; }
+  .sidebar-logo { padding:20px 18px 14px; border-bottom:1px solid rgba(255,255,255,.1); }
+  .sidebar-logo h2 { font-size:14px; font-weight:700; line-height:1.3; }
+  .sidebar-logo span { font-size:10px; opacity:.6; }
+  .sidebar-nav { flex:1; padding:10px 0; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px; padding:10px 18px; cursor:pointer;
+    font-size:12px; font-weight:500; color:rgba(255,255,255,.75); transition:all .3s ease;
+    border-left:3px solid transparent; position:relative;
+  }
+  .nav-item::before {
+    content:''; position:absolute; left:0; top:0; width:3px; height:100%;
+    background:var(--primary-light); transform:scaleY(0); transition:transform .3s ease;
+  }
+  .nav-item:hover {
+    background:rgba(255,255,255,.08); color:#fff; padding-left:22px;
+  }
+  .nav-item:hover::before { transform:scaleY(1); }
+  .nav-item.active {
+    background:rgba(255,255,255,.12); color:#fff; border-left-color:#60a5fa;
+  }
+  .nav-item .icon { font-size:14px; width:18px; text-align:center; }
+  .sidebar-user { padding:12px 18px; border-top:1px solid rgba(255,255,255,.1); font-size:11px; }
+  .sidebar-user strong { display:block; font-size:12px; }
+  .sidebar-user span { opacity:.6; }
+  .logout-btn { margin-top:6px; padding:5px 10px; border:1px solid rgba(255,255,255,.3); border-radius:5px; background:transparent; color:#fff; cursor:pointer; font-size:11px; }
+
+  /* ── Main ── */
+  .main { flex:1; overflow-y:auto; }
+  .topbar { background:#fff; border-bottom:1px solid var(--border); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
+  .topbar h1 { font-size:16px; font-weight:700; }
+  .topbar-right { display:flex; align-items:center; gap:10px; }
+  .badge { padding:2px 9px; border-radius:20px; font-size:10px; font-weight:600; }
+  .badge-blue { background:#dbeafe; color:var(--primary); }
+  .badge-green { background:#dcfce7; color:var(--success); }
+  .badge-red { background:#fee2e2; color:var(--danger); }
+  .badge-yellow { background:#fef9c3; color:#92400e; }
+  .badge-purple { background:#f3e8ff; color:#7c3aed; }
+  .content { padding:20px 24px; }
+
+  /* ── Cards ── */
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:20px; }
+  .stat-card { background:#fff; border-radius:10px; padding:16px; border:1px solid var(--border); }
+  .stat-card .label { font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+  .stat-card .value { font-size:24px; font-weight:700; }
+  .stat-card .sub { font-size:11px; color:var(--muted); margin-top:3px; }
+  .card { background:#fff; border-radius:10px; padding:18px; border:1px solid var(--border); margin-bottom:18px; }
+  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .card-header h3 { font-size:14px; font-weight:700; }
+
+  /* ── Table ── */
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th { background:#f8fafc; padding:9px 10px; text-align:left; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--border); }
+  td { padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#f8fafc; }
+
+  /* ── Forms ── */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-grid .span2 { grid-column:1/-1; }
+  .section-title { font-size:13px; font-weight:700; color:var(--primary); margin:16px 0 10px; padding-bottom:6px; border-bottom:2px solid #dbeafe; }
+
+  /* ── User Card ── */
+  .user-card { display:flex; align-items:center; justify-content:space-between; padding:14px; border:1px solid var(--border); border-radius:10px; margin-bottom:10px; background:#fff; }
+  .user-info { display:flex; align-items:center; gap:12px; }
+  .user-avatar { width:40px; height:40px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
+  .user-details strong { display:block; font-size:13px; }
+  .user-details span { font-size:11px; color:var(--muted); }
+  .user-actions { display:flex; gap:6px; }
+
+  /* ── Notification toast ── */
+  .toast { position:fixed; top:18px; right:18px; background:#1e293b; color:#fff; padding:11px 18px; border-radius:8px; font-size:12px; z-index:999; transform:translateX(120%); transition:.3s; max-width:300px; }
+  .toast.show { transform:translateX(0); }
+
+  /* ── Calendar ── */
+  .calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-head { text-align:center; padding:5px; font-size:10px; font-weight:700; color:var(--muted); }
+  .cal-day { min-height:46px; border:1px solid var(--border); border-radius:5px; padding:3px 5px; font-size:10px; cursor:pointer; transition:.15s; }
+  .cal-day:hover { background:#f0f9ff; }
+  .cal-day .day-num { font-weight:600; font-size:12px; color:var(--text); }
+  .cal-day.has-leave { background:#dbeafe; border-color:#93c5fd; }
+  .cal-day.today { border-color:var(--primary); }
+  .cal-day.today .day-num { color:var(--primary); font-weight:800; }
+  .cal-day.other-month { opacity:.35; }
+
+  /* ── Progress bar ── */
+  .progress-bar { height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; }
+  .progress-bar .fill { height:100%; border-radius:3px; transition:.5s; }
+
+  /* ── Misc ── */
+  .empty-state { text-align:center; padding:36px 18px; color:var(--muted); }
+  .empty-state .icon { font-size:36px; margin-bottom:10px; }
+  .hidden { display:none !important; }
+  .flex { display:flex; align-items:center; gap:8px; }
+  .chip { padding:2px 8px; border-radius:20px; font-size:10px; font-weight:600; }
+  .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center; }
+  .modal { background:#fff; border-radius:14px; padding:24px; max-width:480px;width:90%;box-shadow:0 20px 50px rgba(0,0,0,.3); }
+
+  @media(max-width:768px){
+    .sidebar { width:200px; }
+    .form-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════ LOGIN PAGE ════════════ -->
+<div id="loginPage" class="auth-wrap">
+  <div class="auth-card">
+    <h1>🎓 Smart Leave System</h1>
+    <p>Students + Faculty + Admin Portal</p>
+    <div class="demo-hint">
+      <strong>Demo Accounts (Approved):</strong><br>
+      👨‍🎓 Student: student@uni.edu / pass123<br>
+      👨‍🏫 Faculty: faculty@uni.edu / pass123<br>
+      👨‍💼 Admin: admin@uni.edu / pass123<br>
+      <br>
+      <strong>Pending User:</strong><br>
+      👤 newuser@uni.edu / pass123<br>
+      <em>(Waiting for admin approval)</em>
+    </div>
+    <div class="role-tabs">
+      <div class="role-tab active" onclick="setRole('student')">Student</div>
+      <div class="role-tab" onclick="setRole('faculty')">Faculty</div>
+      <div class="role-tab" onclick="setRole('admin')">Admin</div>
+    </div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="loginEmail" placeholder="your@university.edu"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:6px">Sign In →</button>
+    <p id="loginError" class="error-msg"></p>
+    <p class="switch-link">Don't have an account? <a onclick="showRegister()">Register Here</a></p>
+  </div>
+</div>
+
+<!-- ════════════ REGISTRATION PAGE ════════════ -->
+<div id="registerPage" class="auth-wrap hidden">
+  <div class="auth-card">
+    <h1>📝 New User Registration</h1>
+    <p>Request access to the Leave Management System</p>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="regName" placeholder="Enter your full name"/>
+    </div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="regEmail" placeholder="your@university.edu"/>
+    </div>
+    <div class="form-group">
+      <label>Temporary Password</label>
+      <input type="password" id="regPass" placeholder="Create a password (min 6 chars)"/>
+      <div class="hint">You can change this after admin approval</div>
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="regRole">
+        <option value="student">Student</option>
+        <option value="faculty">Faculty / Teacher</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Department</label>
+      <select id="regDept">
+        <option value="Computer Science">Computer Science</option>
+        <option value="Electronics">Electronics</option>
+        <option value="Mechanical">Mechanical</option>
+        <option value="Civil">Civil</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="Physics">Physics</option>
+        <option value="Chemistry">Chemistry</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Enrollment / ID Number</label>
+      <input type="text" id="regIdNum" placeholder="e.g., 2024-CS-001"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doRegister()">Submit Request →</button>
+    <p id="regError" class="error-msg"></p>
+    <p class="switch-link">Already registered? <a onclick="showLogin()">Sign In</a></p>
+  </div>
+</div>
+
+<!-- ════════════ APP SHELL ════════════ -->
+<div id="appShell" class="app hidden">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🎓 Leave Portal</h2>
+      <span id="sbRoleLabel">Smart Management</span>
+    </div>
+    <nav class="sidebar-nav" id="navMenu"></nav>
+    <div class="sidebar-user">
+      <strong id="sbUserName">User</strong>
+      <span id="sbUserRole">Role</span>
+      <br/>
+      <button class="logout-btn" onclick="logout()">⬅ Logout</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="topbar-right">
+        <span id="topBadge" class="badge badge-blue"></span>
+        <span id="topDate" style="font-size:11px;color:var(--muted)"></span>
+      </div>
+    </div>
+    <div class="content" id="mainContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA STORE
+// ═══════════════════════════════════════════════════════
+const USERS = {
+  'student@uni.edu': { pass:'pass123', name:'Alex Johnson', role:'student', dept:'Computer Science', id:'STU001', status:'approved' },
+  'faculty@uni.edu': { pass:'pass123', name:'Dr. Sarah Williams', role:'faculty', dept:'Computer Science', id:'FAC001', status:'approved' },
+  'admin@uni.edu':   { pass:'pass123', name:'Mr. Robert Chen', role:'admin', dept:'Administration', id:'ADM001', status:'approved' },
+};
+
+const PENDING_USERS = {
+  'newuser@uni.edu': { pass:'pass123', name:'John Doe', role:'student', dept:'Computer Science', idNum:'2024-CS-055', appliedOn:'2026-03-28', status:'pending' },
+};
+
+const LEAVE_TYPES = [
+  { id:'medical',   label:'Medical Leave',   maxDays:15 },
+  { id:'casual',    label:'Casual Leave',    maxDays:10 },
+  { id:'academic',  label:'Academic Leave',  maxDays:5  },
+  { id:'emergency', label:'Emergency Leave', maxDays:3  },
+  { id:'vacation',  label:'Vacation Leave',  maxDays:20 },
+];
+
+let leaveRequests = [
+  { id:'LV001', userId:'student@uni.edu', name:'Alex Johnson', role:'student', dept:'CS', type:'medical', typeLabel:'Medical Leave', from:'2026-03-10', to:'2026-03-12', days:3, reason:'Flu and fever, doctor advised rest.', status:'approved', appliedOn:'2026-03-08', comment:'Approved. Please submit medical certificate.' },
+  { id:'LV002', userId:'student@uni.edu', name:'Alex Johnson', role:'student', dept:'CS', type:'casual', typeLabel:'Casual Leave', from:'2026-03-20', to:'2026-03-20', days:1, reason:'Family function.', status:'rejected', appliedOn:'2026-03-18', comment:'Class test scheduled on this day.' },
+  { id:'LV003', userId:'faculty@uni.edu', name:'Dr. Sarah Williams', role:'faculty', dept:'CS', type:'academic', typeLabel:'Academic Leave', from:'2026-04-05', to:'2026-04-07', days:3, reason:'Conference presentation at IEEE ICSE 2026.', status:'approved', appliedOn:'2026-03-25', comment:'Approved. Safe travels!' },
+  { id:'LV004', userId:'student@uni.edu', name:'Alex Johnson', role:'student', dept:'CS', type:'casual', typeLabel:'Casual Leave', from:'2026-04-15', to:'2026-04-15', days:1, reason:'Personal work.', status:'pending', appliedOn:'2026-04-01', comment:'' },
+];
+
+let leaveBalances = {
+  'student@uni.edu': { medical:12, casual:9, academic:5, emergency:3, vacation:18 },
+  'faculty@uni.edu': { medical:13, casual:8, academic:2, emergency:3, vacation:15 },
+  'admin@uni.edu':   { medical:15, casual:10, academic:5, emergency:3, vacation:20 },
+};
+
+let currentUser = null;
+let selectedRole = 'student';
+let currentPage = 'dashboard';
+
+// ═══════════════════════════════════════════════════════
+//  AUTH FUNCTIONS
+// ═══════════════════════════════════════════════════════
+function setRole(r) {
+  selectedRole = r;
+  document.querySelectorAll('.role-tab').forEach((t,i)=>{
+    t.classList.toggle('active', ['student','faculty','admin'][i]===r);
+  });
+  const demos = {'student':'student@uni.edu','faculty':'faculty@uni.edu','admin':'admin@uni.edu'};
+  document.getElementById('loginEmail').value = demos[r];
+  document.getElementById('loginPass').value = 'pass123';
+}
+
+function showRegister() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('registerPage').classList.remove('hidden');
+  document.getElementById('regError').textContent = '';
+}
+
+function showLogin() {
+  document.getElementById('registerPage').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('loginError').textContent = '';
+}
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const user  = USERS[email];
+  const pendingUser = PENDING_USERS[email];
+
+  if (pendingUser && pendingUser.status === 'pending') {
+    document.getElementById('loginError').textContent = '❌ Your account is pending admin approval. Please wait.';
+    return;
+  }
+
+  if (user && user.pass === pass && user.status === 'approved') {
+    currentUser = { email, ...user };
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('registerPage').classList.add('hidden');
+    document.getElementById('appShell').classList.remove('hidden');
+    setupApp();
+  } else {
+    document.getElementById('loginError').textContent = 'Invalid email or password.';
+  }
+}
+
+function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const role = document.getElementById('regRole').value;
+  const dept = document.getElementById('regDept').value;
+  const idNum = document.getElementById('regIdNum').value.trim();
+
+  if (!name || !email || !pass || !idNum) {
+    document.getElementById('regError').textContent = 'Please fill all fields.';
+    return;
+  }
+  if (pass.length < 6) {
+    document.getElementById('regError').textContent = 'Password must be at least 6 characters.';
+    return;
+  }
+  if (USERS[email]) {
+    document.getElementById('regError').textContent = 'This email is already registered.';
+    return;
+  }
+  if (PENDING_USERS[email]) {
+    document.getElementById('regError').textContent = 'This email already has a pending request.';
+    return;
+  }
+
+  PENDING_USERS[email] = {
+    pass, name, role, dept, idNum,
+    appliedOn: new Date().toISOString().split('T')[0],
+    status: 'pending'
+  };
+
+  document.getElementById('registerPage').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  showToast('✅ Registration submitted! Wait for admin approval.');
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('loginError').textContent = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  APP SETUP
+// ═══════════════════════════════════════════════════════
+function setupApp() {
+  document.getElementById('sbUserName').textContent = currentUser.name;
+  document.getElementById('sbUserRole').textContent = cap(currentUser.role);
+  document.getElementById('sbRoleLabel').textContent = cap(currentUser.role) + ' Portal';
+  document.getElementById('topBadge').textContent = cap(currentUser.role);
+  document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+
+  const navs = {
+    student: [
+      { icon:'🏠', label:'Dashboard', page:'dashboard' },
+      { icon:'📝', label:'Apply Leave', page:'apply' },
+      { icon:'📋', label:'My Requests', page:'myRequests' },
+      { icon:'📅', label:'Leave Calendar', page:'calendar' },
+      { icon:'📊', label:'Leave Balance', page:'balance' },
+    ],
+    faculty: [
+      { icon:'🏠', label:'Dashboard', page:'dashboard' },
+      { icon:'📝', label:'Apply Leave', page:'apply' },
+      { icon:'📋', label:'My Requests', page:'myRequests' },
+      { icon:'✅', label:'Student Approvals', page:'studentApprovals' },
+      { icon:'📅', label:'Leave Calendar', page:'calendar' },
+      { icon:'📊', label:'Leave Balance', page:'balance' },
+    ],
+    admin: [
+      { icon:'🏠', label:'Dashboard', page:'dashboard' },
+      { icon:'👥', label:'User Approvals', page:'userApprovals' },
+      { icon:'➕', label:'Add New User', page:'addUser' },
+      { icon:'📋', label:'All Requests', page:'allRequests' },
+      { icon:'✅', label:'Pending Approvals', page:'pending' },
+      { icon:'📅', label:'Leave Calendar', page:'calendar' },
+      { icon:'📈', label:'Reports', page:'reports' },
+    ],
+  };
+
+  const menu = document.getElementById('navMenu');
+  menu.innerHTML = '';
+  navs[currentUser.role].forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'nav-item' + (item.page==='dashboard'?' active':'');
+    el.innerHTML = `<span class="icon">${item.icon}</span>${item.label}`;
+    el.onclick = () => navigate(item.page, el);
+    menu.appendChild(el);
+  });
+
+  navigate('dashboard');
+}
+
+function navigate(page, el) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else {
+    const all = document.querySelectorAll('.nav-item');
+    all.forEach(n => { if (n.textContent.toLowerCase().includes(page.toLowerCase())) n.classList.add('active'); });
+  }
+  const titles = {
+    dashboard:'Dashboard', apply:'Apply for Leave', myRequests:'My Leave Requests',
+    allRequests:'All Leave Requests', pending:'Pending Approvals', calendar:'Leave Calendar',
+    balance:'Leave Balance', reports:'Reports', userApprovals:'User Approvals',
+    studentApprovals:'Student Leave Approvals', addUser:'Add New User'
+  };
+  document.getElementById('pageTitle').textContent = titles[page] || page;
+  renderPage(page);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PAGES
+// ═══════════════════════════════════════════════════════
+function renderPage(page) {
+  const c = document.getElementById('mainContent');
+  const r = currentUser.role;
+  if (page==='dashboard')       c.innerHTML = r==='admin' ? adminDashboard() : userDashboard();
+  else if (page==='apply')      c.innerHTML = applyForm();
+  else if (page==='myRequests') c.innerHTML = myRequestsPage();
+  else if (page==='allRequests')c.innerHTML = allRequestsPage();
+  else if (page==='pending')    c.innerHTML = pendingPage();
+  else if (page==='calendar')   c.innerHTML = calendarPage();
+  else if (page==='balance')    c.innerHTML = balancePage();
+  else if (page==='reports')    c.innerHTML = reportsPage();
+  else if (page==='userApprovals') c.innerHTML = userApprovalsPage();
+  else if (page==='studentApprovals') c.innerHTML = studentApprovalsPage();
+  else if (page==='addUser')    c.innerHTML = addUserPage();
+}
+
+// ── Dashboard ──
+function userDashboard() {
+  const email = currentUser.email;
+  const myReqs = leaveRequests.filter(r => r.userId === email);
+  const pending = myReqs.filter(r => r.status==='pending').length;
+  const approved = myReqs.filter(r => r.status==='approved').length;
+  const rejected = myReqs.filter(r => r.status==='rejected').length;
+  const bal = leaveBalances[email];
+  const totalUsed = LEAVE_TYPES.reduce((s,t) => s + (t.maxDays - bal[t.id]), 0);
+
+  return `
+  <div class="stats-grid">
+    <div class="stat-card"><div class="label">Total Requests</div><div class="value" style="color:var(--primary)">${myReqs.length}</div><div class="sub">All time</div></div>
+    <div class="stat-card"><div class="label">Pending</div><div class="value" style="color:var(--warning)">${pending}</div><div class="sub">Awaiting approval</div></div>
+    <div class="stat-card"><div class="label">Approved</div><div class="value" style="color:var(--success)">${approved}</div><div class="sub">This year</div></div>
+    <div class="stat-card"><div class="label">Rejected</div><div class="value" style="color:var(--danger)">${rejected}</div><div class="sub">This year</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Recent Leave Requests</h3><button class="btn btn-primary" onclick="navigate('apply')">+ Apply Leave</button></div>
+    ${reqTable(myReqs.slice(-5).reverse(), false, true)}
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Leave Balance</h3><button class="btn btn-outline" onclick="navigate('balance')">View All</button></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+      ${LEAVE_TYPES.slice(0,4).map(t => {
+        const rem = bal[t.id]; const used = t.maxDays - rem; const pct = Math.round(used/t.maxDays*100);
+        const color = pct>80?'#dc2626':pct>50?'#d97706':'#16a34a';
+        return `<div style="padding:12px;border:1px solid var(--border);border-radius:8px">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${t.label}</div>
+          <div style="font-size:20px;font-weight:700;color:${color}">${rem}<span style="font-size:12px;color:var(--muted)">/${t.maxDays}</span></div>
+          <div class="progress-bar" style="margin-top:6px"><div class="fill" style="width:${pct}%;background:${color}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function adminDashboard() {
+  const total = leaveRequests.length;
+  const pending = leaveRequests.filter(r=>r.status==='pending').length;
+  const approved = leaveRequests.filter(r=>r.status==='approved').length;
+  const pendingUsers = Object.values(PENDING_USERS).filter(u=>u.status==='pending').length;
+  const totalUsers = Object.keys(USERS).length;
+
+  return `
+  <div class="stats-grid">
+    <div class="stat-card"><div class="label">Total Requests</div><div class="value" style="color:var(--primary)">${total}</div><div class="sub">All departments</div></div>
+    <div class="stat-card"><div class="label">Pending Leaves</div><div class="value" style="color:var(--warning)">${pending}</div><div class="sub">Need action</div></div>
+    <div class="stat-card"><div class="label">Approved</div><div class="value" style="color:var(--success)">${approved}</div><div class="sub">This period</div></div>
+    <div class="stat-card"><div class="label">Registered Users</div><div class="value" style="color:#7c3aed">${totalUsers}</div><div class="sub">Active accounts</div></div>
+    <div class="stat-card"><div class="label">Pending Approvals</div><div class="value" style="color:var(--danger)">${pendingUsers}</div><div class="sub">New user requests</div></div>
+  </div>
+
+  ${pendingUsers > 0 ? `
+  <div class="card" style="border-color:var(--warning);background:#fffbeb">
+    <div class="card-header"><h3>⚠️ User Approvals Required</h3><button class="btn btn-warning" onclick="navigate('userApprovals')">Review Now</button></div>
+    <p style="font-size:12px;color:var(--muted)">${pendingUsers} new user(s) waiting for account approval.</p>
+  </div>` : ''}
+
+  <div class="card">
+    <div class="card-header"><h3>Pending Leave Approvals</h3><button class="btn btn-warning" onclick="navigate('pending')">Review All</button></div>
+    ${reqTable(leaveRequests.filter(r=>r.status==='pending').slice(0,5), true, true)}
+  </div>`;
+}
+
+// ── Apply Form ──
+function applyForm() {
+  return `
+  <div class="card" style="max-width:680px">
+    <div class="section-title">📝 New Leave Application</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Leave Type</label>
+        <select id="fType" onchange="updateDays()">
+          ${LEAVE_TYPES.map(t=>`<option value="${t.id}">${t.label} (max ${t.maxDays} days)</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Available Balance</label>
+        <input id="fBalance" readonly style="background:#f0fdf4;font-weight:700;color:#16a34a"/>
+      </div>
+      <div class="form-group">
+        <label>From Date</label>
+        <input type="date" id="fFrom" onchange="updateDays()" min="${new Date().toISOString().split('T')[0]}"/>
+      </div>
+      <div class="form-group">
+        <label>To Date</label>
+        <input type="date" id="fTo" onchange="updateDays()" min="${new Date().toISOString().split('T')[0]}"/>
+      </div>
+      <div class="form-group">
+        <label>Number of Days</label>
+        <input id="fDays" readonly style="background:#f8fafc;font-weight:700;color:var(--primary)"/>
+      </div>
+      <div class="form-group">
+        <label>Department</label>
+        <input value="${currentUser.dept}" readonly style="background:#f8fafc"/>
+      </div>
+      <div class="form-group span2">
+        <label>Reason for Leave</label>
+        <textarea id="fReason" rows="3" placeholder="Please describe the reason for your leave request..."></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-primary" onclick="submitLeave()">📤 Submit Application</button>
+      <button class="btn btn-outline" onclick="navigate('myRequests')">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function updateDays() {
+  const type = document.getElementById('fType')?.value;
+  const from = document.getElementById('fFrom')?.value;
+  const to   = document.getElementById('fTo')?.value;
+  const bal  = leaveBalances[currentUser.email];
+  if (type && bal) {
+    document.getElementById('fBalance').value = bal[type] + ' days remaining';
+  }
+  if (from && to) {
+    const d = Math.max(0, Math.round((new Date(to)-new Date(from))/(86400000))+1);
+    document.getElementById('fDays').value = d + ' day(s)';
+  }
+}
+
+function submitLeave() {
+  const type = document.getElementById('fType').value;
+  const from = document.getElementById('fFrom').value;
+  const to   = document.getElementById('fTo').value;
+  const reason = document.getElementById('fReason').value.trim();
+  if (!from||!to||!reason) { showToast('⚠️ Please fill all required fields.'); return; }
+  if (new Date(to)<new Date(from)) { showToast('⚠️ End date must be after start date.'); return; }
+  const days = Math.round((new Date(to)-new Date(from))/86400000)+1;
+  const bal = leaveBalances[currentUser.email][type];
+  if (days > bal) { showToast(`⚠️ Insufficient balance. You have only ${bal} days.`); return; }
+  const t = LEAVE_TYPES.find(x=>x.id===type);
+  const newReq = {
+    id: 'LV' + String(leaveRequests.length+1).padStart(3,'0'),
+    userId: currentUser.email, name: currentUser.name, role: currentUser.role,
+    dept: currentUser.dept, type, typeLabel: t.label,
+    from, to, days, reason, status:'pending', appliedOn: new Date().toISOString().split('T')[0], comment:''
+  };
+  leaveRequests.push(newReq);
+  showToast('✅ Leave application submitted!');
+  navigate('myRequests');
+}
+
+// ── My Requests ──
+function myRequestsPage() {
+  const myReqs = leaveRequests.filter(r=>r.userId===currentUser.email).reverse();
+  return `
+  <div class="card">
+    <div class="card-header"><h3>My Leave Requests (${myReqs.length})</h3>
+      <button class="btn btn-primary" onclick="navigate('apply')">+ New Request</button>
+    </div>
+    ${myReqs.length ? reqTable(myReqs, false, true) : '<div class="empty-state"><div class="icon">📭</div><p>No leave requests yet.<br>Click "+ New Request" to apply.</p></div>'}
+  </div>`;
+}
+
+// ── All Requests (admin) ──
+function allRequestsPage() {
+  return `
+  <div class="card">
+    <div class="card-header"><h3>All Leave Requests (${leaveRequests.length})</h3></div>
+    ${reqTable([...leaveRequests].reverse(), true, true)}
+  </div>`;
+}
+
+// ── Pending (admin) ──
+function pendingPage() {
+  const p = leaveRequests.filter(r=>r.status==='pending');
+  return `
+  <div class="card">
+    <div class="card-header"><h3>Pending Leave Approvals (${p.length})</h3></div>
+    ${p.length ? reqTable(p, true, true, true) : '<div class="empty-state"><div class="icon">✅</div><p>No pending requests!</p></div>'}
+  </div>`;
+}
+
+// ── Student Approvals (Faculty) ──
+function studentApprovalsPage() {
+  const students = leaveRequests.filter(r=>r.role==='student' && r.status==='pending');
+  return `
+  <div class="card">
+    <div class="card-header"><h3>Student Leave Approvals (${students.length})</h3></div>
+    ${students.length ? reqTable(students, true, true, true) : '<div class="empty-state"><div class="icon">✅</div><p>No student leaves pending!</p></div>'}
+  </div>`;
+}
+
+// ── User Approvals (Admin) ──
+function userApprovalsPage() {
+  const pending = Object.entries(PENDING_USERS).filter(([k,v])=>v.status==='pending');
+
+  if (!pending.length) {
+    return `
+    <div class="card">
+      <div class="card-header"><h3>User Approvals</h3><button class="btn btn-primary" onclick="navigate('addUser')">+ Add User</button></div>
+      <div class="empty-state"><div class="icon">✅</div><p>No pending registrations!</p></div>
+    </div>`;
+  }
+
+  return `
+  <div class="card">
+    <div class="card-header"><h3>Pending User Registrations (${pending.length})</h3><button class="btn btn-primary" onclick="navigate('addUser')">+ Add User Manually</button></div>
+    ${pending.map(([email, u]) => `
+      <div class="user-card">
+        <div class="user-info">
+          <div class="user-avatar">${u.name.charAt(0)}</div>
+          <div class="user-details">
+            <strong>${u.name}</strong>
+            <span>${email}</span>
+            <span>${u.role.charAt(0).toUpperCase() + u.role.slice(1)} · ${u.dept} · ID: ${u.idNum}</span>
+            <span>Applied: ${fmt(u.appliedOn)}</span>
+          </div>
+        </div>
+        <div class="user-actions">
+          <button class="btn btn-success" onclick="approveUser('${email}')">✓ Approve</button>
+          <button class="btn btn-danger" onclick="rejectUser('${email}')">✗ Reject</button>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function approveUser(email) {
+  const pu = PENDING_USERS[email];
+  if (!pu) return;
+
+  const prefix = pu.role === 'student' ? 'STU' : 'FAC';
+  const count = Object.keys(USERS).filter(k=>USERS[k].role===pu.role).length + 1;
+  const newId = prefix + String(count).padStart(3,'0');
+
+  USERS[email] = {
+    pass: pu.pass,
+    name: pu.name,
+    role: pu.role,
+    dept: pu.dept,
+    id: newId,
+    status: 'approved'
+  };
+
+  leaveBalances[email] = { medical:15, casual:10, academic:5, emergency:3, vacation:20 };
+  delete PENDING_USERS[email];
+
+  showToast(`✅ ${pu.name} approved! ID: ${newId}`);
+  renderPage(currentPage);
+}
+
+function rejectUser(email) {
+  const pu = PENDING_USERS[email];
+  delete PENDING_USERS[email];
+  showToast(`❌ ${pu.name}'s registration rejected.`);
+  renderPage(currentPage);
+}
+
+// ── Add User Manually (Admin) ──
+function addUserPage() {
+  return `
+  <div class="card" style="max-width:600px">
+    <div class="section-title">➕ Add New User Manually</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="addName" placeholder="Enter full name"/>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="addEmail" placeholder="user@university.edu"/>
+      </div>
+      <div class="form-group">
+        <label>Temporary Password</label>
+        <input type="password" id="addPass" placeholder="Set password"/>
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="addRole">
+          <option value="student">Student</option>
+          <option value="faculty">Faculty</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Department</label>
+        <select id="addDept">
+          <option value="Computer Science">Computer Science</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Mechanical">Mechanical</option>
+          <option value="Civil">Civil</option>
+          <option value="Administration">Administration</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>User ID (optional)</label>
+        <input type="text" id="addId" placeholder="Auto-generated if blank"/>
+      </div>
+      <div class="form-group span2">
+        <button class="btn btn-primary" onclick="addUserManual()">+ Add User</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>All Registered Users (${Object.keys(USERS).length})</h3></div>
+    ${Object.entries(USERS).map(([email, u]) => `
+      <div class="user-card">
+        <div class="user-info">
+          <div class="user-avatar">${u.name.charAt(0)}</div>
+          <div class="user-details">
+            <strong>${u.name}</strong>
+            <span>${email}</span>
+            <span>${u.role.charAt(0).toUpperCase() + u.role.slice(1)} · ${u.dept} · ID: ${u.id}</span>
+          </div>
+        </div>
+        <span class="badge badge-green">Active</span>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function addUserManual() {
+  const name = document.getElementById('addName').value.trim();
+  const email = document.getElementById('addEmail').value.trim();
+  const pass = document.getElementById('addPass').value;
+  const role = document.getElementById('addRole').value;
+  const dept = document.getElementById('addDept').value;
+  const idInput = document.getElementById('addId').value.trim();
+
+  if (!name || !email || !pass) { showToast('⚠️ Please fill all fields.'); return; }
+  if (USERS[email]) { showToast('⚠️ User already exists.'); return; }
+
+  const prefix = role === 'student' ? 'STU' : role === 'faculty' ? 'FAC' : 'ADM';
+  const id = idInput || (prefix + String(Object.keys(USERS).length + 1).padStart(3,'0'));
+
+  USERS[email] = { pass, name, role, dept, id, status:'approved' };
+  leaveBalances[email] = { medical:15, casual:10, academic:5, emergency:3, vacation:20 };
+
+  showToast(`✅ User ${name} added!`);
+  renderPage('addUser');
+}
+
+// ── Request Table ──
+function reqTable(reqs, showUser=false, showDetail=false, showActions=false) {
+  if (!reqs.length) return '<div class="empty-state"><div class="icon">📭</div><p>No requests found.</p></div>';
+  return `<div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>ID</th>
+      ${showUser ? '<th>Applicant</th><th>Role</th>':''}
+      <th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th><th>Applied</th>
+      ${showActions || showDetail ? '<th>Actions</th>':''}
+    </tr></thead>
+    <tbody>
+    ${reqs.map(r => `<tr>
+      <td><span style="font-family:monospace;font-size:11px;color:var(--muted)">${r.id}</span></td>
+      ${showUser ? `<td><strong>${r.name}</strong><br><span style="font-size:10px;color:var(--muted)">${r.dept}</span></td><td><span class="chip" style="background:${r.role==='student'?'#dbeafe':'#f3e8ff'};color:${r.role==='student'?'#1d4ed8':'#7c3aed'}">${cap(r.role)}</span></td>`:''}
+      <td>${r.typeLabel}</td>
+      <td>${fmt(r.from)}</td><td>${fmt(r.to)}</td>
+      <td><strong>${r.days}</strong></td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="font-size:11px;color:var(--muted)">${fmt(r.appliedOn)}</td>
+      ${showActions && r.status==='pending' ? `<td><div class="flex" style="gap:4px">
+        <button class="btn btn-success" style="padding:4px 10px;font-size:11px" onclick="approveLeave('${r.id}')">✓</button>
+        <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="rejectLeave('${r.id}')">✗</button>
+      </div></td>` : showDetail || showActions ? `<td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="showDetail('${r.id}')">View</button></td>` : ''}
+    </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+function approveLeave(id) {
+  const req = leaveRequests.find(r=>r.id===id);
+  if (req) {
+    req.status='approved';
+    const approver = currentUser.role === 'admin' ? 'admin' : 'faculty';
+    req.comment=`Approved by ${approver}.`;
+    leaveBalances[req.userId][req.type] -= req.days;
+    showToast('✅ Leave approved!');
+    renderPage(currentPage);
+  }
+}
+
+function rejectLeave(id) {
+  const req = leaveRequests.find(r=>r.id===id);
+  if (req) {
+    req.status='rejected';
+    const rejector = currentUser.role === 'admin' ? 'admin' : 'faculty';
+    req.comment=`Rejected by ${rejector}.`;
+    showToast('❌ Leave rejected.');
+    renderPage(currentPage);
+  }
+}
+
+function showDetail(id) {
+  const r = leaveRequests.find(x=>x.id===id);
+  if (!r) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-size:15px">Leave Request — ${r.id}</h3>
+        <button onclick="this.closest('.modal-overlay').remove()" style="border:none;background:#f1f5f9;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px">✕</button>
+      </div>
+      <table style="font-size:12px">
+        <tr><td style="padding:5px 10px 5px 0;color:var(--muted);font-weight:600">Applicant</td><td>${r.name} (${cap(r.role)})</td></tr>
+        <tr><td style="padding:5px 10px 5px 0;color:var(--muted);font-weight:600">Department</td><td>${r.dept}</td></tr>
+        <tr><td style="padding:5px 10px 5px 0;color:var(--muted);font-weight:600">Leave Type</td><td>${r.typeLabel}</td></tr>
+        <tr><td style="padding:5px 10px 5px 0;color:var(--muted);font-weight:600">Duration</td><td>${fmt(r.from)} → ${fmt(r.to)} (${r.days} day(s))</td></tr>
+        <tr><td style="padding:5px 10px 5px 0;color:var(--muted);font-weight:600">Status</td><td>${statusBadge(r.status)}</td></tr>
+        <tr><td style="padding:5px 10px 5px 0;color:var(--muted);font-weight:600">Reason</td><td>${r.reason}</td></tr>
+        ${r.comment ? `<tr><td style="padding:5px 10px 5px 0;color:var(--muted);font-weight:600">Note</td><td>${r.comment}</td></tr>`:''}
+        <tr><td style="padding:5px 10px 5px 0;color:var(--muted);font-weight:600">Applied On</td><td>${fmt(r.appliedOn)}</td></tr>
+      </table>
+      ${r.status==='pending' && (currentUser.role==='admin' || currentUser.role==='faculty') ? `
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-success" onclick="approveLeave('${r.id}');this.closest('.modal-overlay').remove()" style="flex:1;justify-content:center">✓ Approve</button>
+        <button class="btn btn-danger" onclick="rejectLeave('${r.id}');this.closest('.modal-overlay').remove()" style="flex:1;justify-content:center">✗ Reject</button>
+      </div>` : ''}
+    </div>`;
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+// ── Calendar ──
+function calendarPage() {
+  const now = new Date(2026,3,1);
+  const year = now.getFullYear(); const month = now.getMonth();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstDay = new Date(year,month,1).getDay();
+  const daysInMonth = new Date(year,month+1,0).getDate();
+  const daysInPrev = new Date(year,month,0).getDate();
+
+  const leaves = leaveRequests.filter(r => r.status==='approved' || currentUser.role==='admin');
+  const leaveDayMap = {};
+  leaves.forEach(r => {
+    let d = new Date(r.from);
+    const end = new Date(r.to);
+    while (d <= end) {
+      const key = d.toISOString().split('T')[0];
+      if (!leaveDayMap[key]) leaveDayMap[key] = [];
+      leaveDayMap[key].push(r);
+      d.setDate(d.getDate()+1);
+    }
+  });
+
+  let cells = '';
+  for (let i=0;i<firstDay;i++) {
+    const d = daysInPrev - firstDay + 1 + i;
+    cells += `<div class="cal-day other-month"><span class="day-num">${d}</span></div>`;
+  }
+  for (let d=1;d<=daysInMonth;d++) {
+    const key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasLeave = leaveDayMap[key];
+    const isToday = d===1;
+    cells += `<div class="cal-day${hasLeave?' has-leave':''}${isToday?' today':''}" onclick="${hasLeave?`showCalLeave('${key}')`:'void(0)'}">
+      <span class="day-num">${d}</span>
+      ${hasLeave ? hasLeave.slice(0,2).map(l=>`<div style="font-size:9px;margin-top:2px;color:var(--primary);font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${l.name.split(' ')[0]}</div>`).join('') : ''}
+    </div>`;
+  }
+
+  return `<div class="card">
+    <div class="card-header"><h3>📅 ${monthNames[month]} ${year}</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="display:flex;align-items:center;gap:3px;font-size:11px"><span style="width:10px;height:10px;background:#dbeafe;border-radius:3px;border:1px solid #93c5fd;display:inline-block"></span> Leave Day</span>
+        <span style="font-size:11px;border:1px solid var(--primary);padding:2px 7px;border-radius:4px;color:var(--primary)">Today</span>
+      </div>
+    </div>
+    <div class="calendar-grid">
+      ${days.map(d=>`<div class="cal-head">${d}</div>`).join('')}
+      ${cells}
+    </div>
+  </div>`;
+}
+
+function showCalLeave(key) {
+  const leaves = leaveRequests.filter(r => {
+    return (r.status==='approved'||currentUser.role==='admin') && new Date(r.from)<=new Date(key) && new Date(r.to)>=new Date(key);
+  });
+  if (!leaves.length) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div style="background:#fff;border-radius:14px;padding:22px;max-width:400px;width:90%">
+    <h3 style="margin-bottom:14px">Leaves on ${fmt(key)}</h3>
+    ${leaves.map(r=>`<div style="padding:9px;border:1px solid var(--border);border-radius:7px;margin-bottom:7px">
+      <strong>${r.name}</strong> <span class="chip" style="background:#dbeafe;color:#1d4ed8">${r.typeLabel}</span><br>
+      <span style="font-size:11px;color:var(--muted)">${fmt(r.from)} – ${fmt(r.to)} · ${r.days} day(s)</span>
+    </div>`).join('')}
+    <button onclick="this.closest('.modal-overlay').remove()" class="btn btn-outline btn-full" style="margin-top:8px">Close</button>
+  </div>`;
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+// ── Balance ──
+function balancePage() {
+  const bal = leaveBalances[currentUser.email];
+  return `<div class="card">
+    <div class="card-header"><h3>Leave Balance Overview</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+    ${LEAVE_TYPES.map(t => {
+      const rem = bal[t.id]; const used = t.maxDays - rem; const pct = Math.round(used/t.maxDays*100);
+      const color = pct>80?'#dc2626':pct>50?'#d97706':'#16a34a';
+      return `<div style="padding:18px;border:1.5px solid var(--border);border-radius:10px">
+        <div style="font-weight:700;margin-bottom:10px">${t.label}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+          <span style="font-size:28px;font-weight:800;color:${color}">${rem}</span>
+          <span style="font-size:12px;color:var(--muted)">of ${t.maxDays} days</span>
+        </div>
+        <div class="progress-bar"><div class="fill" style="width:${pct}%;background:${color}"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11px;color:var(--muted)">
+          <span>${used} used</span><span>${rem} remaining</span>
+        </div>
+      </div>`;
+    }).join('')}
+    </div>
+  </div>`;
+}
+
+// ── Reports ──
+function reportsPage() {
+  const byType = {};
+  LEAVE_TYPES.forEach(t => { byType[t.id] = {label:t.label,total:0,approved:0,rejected:0,pending:0}; });
+  leaveRequests.forEach(r => { if (byType[r.type]) { byType[r.type].total++; byType[r.type][r.status]++; } });
+  const byDept = {};
+  leaveRequests.forEach(r => { if(!byDept[r.dept]) byDept[r.dept]={total:0,approved:0}; byDept[r.dept].total++; if(r.status==='approved') byDept[r.dept].approved++; });
+
+  return `
+  <div class="card">
+    <div class="card-header"><h3>Leave Summary by Type</h3></div>
+    <table>
+      <thead><tr><th>Leave Type</th><th>Total</th><th>Approved</th><th>Rejected</th><th>Pending</th><th>Rate</th></tr></thead>
+      <tbody>
+      ${Object.values(byType).map(t => {
+        const rate = t.total ? Math.round(t.approved/t.total*100) : 0;
+        return `<tr>
+          <td><strong>${t.label}</strong></td><td>${t.total}</td>
+          <td><span class="badge badge-green">${t.approved}</span></td>
+          <td><span class="badge badge-red">${t.rejected}</span></td>
+          <td><span class="badge badge-yellow">${t.pending}</span></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="progress-bar" style="width:60px"><div class="fill" style="width:${rate}%;background:${rate>60?'#16a34a':rate>30?'#d97706':'#dc2626'}"></div></div>
+              <span style="font-size:11px;font-weight:600">${rate}%</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>Leave by Department</h3></div>
+    <table>
+      <thead><tr><th>Department</th><th>Total Requests</th><th>Approved</th><th>Rate</th></tr></thead>
+      <tbody>
+      ${Object.entries(byDept).map(([dept,d]) => `
+        <tr><td><strong>${dept}</strong></td><td>${d.total}</td>
+        <td><span class="badge badge-green">${d.approved}</span></td>
+        <td>${d.total ? Math.round(d.approved/d.total*100) : 0}%</td></tr>
+      `).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+function cap(s) { return s ? s[0].toUpperCase()+s.slice(1) : ''; }
+function fmt(d) {
+  if (!d) return '';
+  const [y,m,dd] = d.split('-');
+  const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[+m]} ${+dd}, ${y}`;
+}
+function statusBadge(s) {
+  const map = { pending:'badge-yellow', approved:'badge-green', rejected:'badge-red' };
+  return `<span class="badge ${map[s]||'badge-blue'}">${cap(s)}</span>`;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// Init
+setRole('student');
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+</script>
+</body>
+</html>
